@@ -425,80 +425,93 @@ public abstract class AbstractIdentifierFactory implements IdentifierFactory
         String key = name.replace(quoteString, ""); // Remove any user/JDBC supplied quotes
         if (identifierType == IdentifierType.TABLE)
         {
-            identifier = tables.get(key);
-            if (identifier == null)
-            {
-                String sqlIdentifier = generateIdentifierNameForJavaName(key);
-                sqlIdentifier = truncate(sqlIdentifier, dba.getDatastoreIdentifierMaxLength(identifierType));
-                identifier = new TableIdentifier(this, sqlIdentifier);
-                setCatalogSchemaForTable((TableIdentifier)identifier);
-                tables.put(key, identifier);
+            synchronized (tables) {
+                identifier = tables.get(key);
+                if (identifier == null)
+                {
+                    String sqlIdentifier = generateIdentifierNameForJavaName(key);
+                    sqlIdentifier = truncate(sqlIdentifier, dba.getDatastoreIdentifierMaxLength(identifierType));
+                    identifier = new TableIdentifier(this, sqlIdentifier);
+                    setCatalogSchemaForTable((TableIdentifier) identifier);
+                    tables.put(key, identifier);
+                }
             }
         }
         else if (identifierType == IdentifierType.COLUMN)
         {
-            identifier = columns.get(key);
-            if (identifier == null)
-            {
-                String sqlIdentifier = generateIdentifierNameForJavaName(key);
-                sqlIdentifier = truncate(sqlIdentifier, dba.getDatastoreIdentifierMaxLength(identifierType));
-                identifier = new ColumnIdentifier(this, sqlIdentifier);
-                columns.put(key, identifier);
+            synchronized (columns) {
+                identifier = columns.get(key);
+                if (identifier == null)
+                {
+                    String sqlIdentifier = generateIdentifierNameForJavaName(key);
+                    sqlIdentifier = truncate(sqlIdentifier, dba.getDatastoreIdentifierMaxLength(identifierType));
+                    identifier = new ColumnIdentifier(this, sqlIdentifier);
+                    columns.put(key, identifier);
+                }
             }
         }
         else if (identifierType == IdentifierType.FOREIGN_KEY)
         {
-            identifier = foreignkeys.get(key);
-            if (identifier == null)
-            {
-                String sqlIdentifier = generateIdentifierNameForJavaName(key);
-                sqlIdentifier = truncate(sqlIdentifier, dba.getDatastoreIdentifierMaxLength(identifierType));
-                identifier = new ForeignKeyIdentifier(this, sqlIdentifier);
-                foreignkeys.put(key, identifier);
+            synchronized (foreignkeys) {
+                identifier = foreignkeys.get(key);
+                if (identifier == null)
+                {
+                    String sqlIdentifier = generateIdentifierNameForJavaName(key);
+                    sqlIdentifier = truncate(sqlIdentifier, dba.getDatastoreIdentifierMaxLength(identifierType));
+                    identifier = new ForeignKeyIdentifier(this, sqlIdentifier);
+                    foreignkeys.put(key, identifier);
+                }
             }
         }
         else if (identifierType == IdentifierType.INDEX)
         {
-            identifier = indexes.get(key);
-            if (identifier == null)
-            {
-                String sqlIdentifier = generateIdentifierNameForJavaName(key);
-                sqlIdentifier = truncate(sqlIdentifier, dba.getDatastoreIdentifierMaxLength(identifierType));
-                identifier = new IndexIdentifier(this, sqlIdentifier);
-                indexes.put(key, identifier);
+            synchronized (indexes) {
+                identifier = indexes.get(key);
+                if (identifier == null)
+                {
+                    String sqlIdentifier = generateIdentifierNameForJavaName(key);
+                    sqlIdentifier = truncate(sqlIdentifier, dba.getDatastoreIdentifierMaxLength(identifierType));
+                    identifier = new IndexIdentifier(this, sqlIdentifier);
+                    indexes.put(key, identifier);
+                }
             }
         }
         else if (identifierType == IdentifierType.CANDIDATE_KEY)
         {
-            identifier = candidates.get(key);
-            if (identifier == null)
-            {
-                String sqlIdentifier = generateIdentifierNameForJavaName(key);
-                sqlIdentifier = truncate(sqlIdentifier, dba.getDatastoreIdentifierMaxLength(identifierType));
-                identifier = new CandidateKeyIdentifier(this, sqlIdentifier);
-                candidates.put(key, identifier);
+            synchronized (candidates) {
+                identifier = candidates.get(key);
+                if (identifier == null)
+                {
+                    String sqlIdentifier = generateIdentifierNameForJavaName(key);
+                    sqlIdentifier = truncate(sqlIdentifier, dba.getDatastoreIdentifierMaxLength(identifierType));
+                    identifier = new CandidateKeyIdentifier(this, sqlIdentifier);
+                    candidates.put(key, identifier);
+                }
             }
         }
-        else if (identifierType == IdentifierType.PRIMARY_KEY)
-        {
-            identifier = primarykeys.get(key);
-            if (identifier == null)
-            {
-                String sqlIdentifier = generateIdentifierNameForJavaName(key);
-                sqlIdentifier = truncate(sqlIdentifier, dba.getDatastoreIdentifierMaxLength(identifierType));
-                identifier = new PrimaryKeyIdentifier(this, sqlIdentifier);
-                primarykeys.put(key, identifier);
+        else if (identifierType == IdentifierType.PRIMARY_KEY) {
+            synchronized (primarykeys) {
+                identifier = primarykeys.get(key);
+                if (identifier == null)
+                {
+                    String sqlIdentifier = generateIdentifierNameForJavaName(key);
+                    sqlIdentifier = truncate(sqlIdentifier, dba.getDatastoreIdentifierMaxLength(identifierType));
+                    identifier = new PrimaryKeyIdentifier(this, sqlIdentifier);
+                    primarykeys.put(key, identifier);
+                }
             }
         }
         else if (identifierType == IdentifierType.SEQUENCE)
         {
-            identifier = sequences.get(key);
-            if (identifier == null)
-            {
-                String sqlIdentifier = generateIdentifierNameForJavaName(key);
-                sqlIdentifier = truncate(sqlIdentifier, dba.getDatastoreIdentifierMaxLength(identifierType));
-                identifier = new SequenceIdentifier(this, sqlIdentifier);
-                sequences.put(key, identifier);
+            synchronized (sequences) {
+                identifier = sequences.get(key);
+                if (identifier == null)
+                {
+                    String sqlIdentifier = generateIdentifierNameForJavaName(key);
+                    sqlIdentifier = truncate(sqlIdentifier, dba.getDatastoreIdentifierMaxLength(identifierType));
+                    identifier = new SequenceIdentifier(this, sqlIdentifier);
+                    sequences.put(key, identifier);
+                }
             }
         }
         else
@@ -567,15 +580,17 @@ public abstract class AbstractIdentifierFactory implements IdentifierFactory
     public DatastoreIdentifier newTableIdentifier(String identifierName)
     {
         String key = identifierName.replace(quoteString, ""); // Allow for quotes on input name
-        DatastoreIdentifier identifier = tables.get(key);
-        if (identifier == null)
-        {
-            String baseID = truncate(key, dba.getDatastoreIdentifierMaxLength(IdentifierType.TABLE));
-            identifier = new TableIdentifier(this, baseID);
-            setCatalogSchemaForTable((TableIdentifier)identifier);
-            tables.put(key, identifier);
+        synchronized (tables) {
+            DatastoreIdentifier identifier = tables.get(key);
+            if (identifier == null)
+            {
+                String baseID = truncate(key, dba.getDatastoreIdentifierMaxLength(IdentifierType.TABLE));
+                identifier = new TableIdentifier(this, baseID);
+                setCatalogSchemaForTable((TableIdentifier)identifier);
+                tables.put(key, identifier);
+            }
+            return identifier;
         }
-        return identifier;
     }
 
     /**
@@ -590,31 +605,33 @@ public abstract class AbstractIdentifierFactory implements IdentifierFactory
     public DatastoreIdentifier newTableIdentifier(String identifierName, String catalogName, String schemaName)
     {
         String tableName = identifierName.replace(quoteString, ""); // Allow for quotes on input name
-        String key = (StringUtils.isWhitespace(catalogName) ? "" : (catalogName + ".")) + (StringUtils.isWhitespace(schemaName) ? "" : (schemaName + ".")) + tableName;
-        DatastoreIdentifier identifier = tables.get(key);
-        if (identifier == null)
-        {
-            String baseID = truncate(tableName, dba.getDatastoreIdentifierMaxLength(IdentifierType.TABLE));
-            identifier = new TableIdentifier(this, baseID);
-            if (catalogName == null && schemaName == null)
+        String key = (StringUtils.isWhitespace(catalogName) ? "" : (catalogName + ".")) + (
+            StringUtils.isWhitespace(schemaName) ? "" : (schemaName + ".")) + tableName;
+        synchronized (tables) {
+            DatastoreIdentifier identifier = tables.get(key);
+            if (identifier == null)
             {
-                // Set to default catalog/schema
-                setCatalogSchemaForTable((TableIdentifier)identifier);
-            }
-            else
-            {
-                if (catalogName != null)
+                String baseID = truncate(tableName, dba.getDatastoreIdentifierMaxLength(IdentifierType.TABLE));
+                identifier = new TableIdentifier(this, baseID);
+                if (catalogName == null && schemaName == null)
                 {
-                    identifier.setCatalogName(catalogName);
-                }
-                if (schemaName != null)
+                    // Set to default catalog/schema
+                    setCatalogSchemaForTable((TableIdentifier) identifier);
+                } else
                 {
-                    identifier.setSchemaName(schemaName);
+                    if (catalogName != null)
+                    {
+                        identifier.setCatalogName(catalogName);
+                    }
+                    if (schemaName != null)
+                    {
+                        identifier.setSchemaName(schemaName);
+                    }
                 }
+                tables.put(key, identifier);
             }
-            tables.put(key, identifier);
+            return identifier;
         }
-        return identifier;
     }
 
     /**
@@ -627,14 +644,16 @@ public abstract class AbstractIdentifierFactory implements IdentifierFactory
     public DatastoreIdentifier newColumnIdentifier(String identifierName)
     {
         String key = identifierName.replace(quoteString, ""); // Allow for quotes on input names
-        DatastoreIdentifier identifier = columns.get(key);
-        if (identifier == null)
-        {
-            String baseID = truncate(key, dba.getDatastoreIdentifierMaxLength(IdentifierType.COLUMN));
-            identifier = new ColumnIdentifier(this, baseID);
-            columns.put(key, identifier);
+        synchronized (columns) {
+            DatastoreIdentifier identifier = columns.get(key);
+            if (identifier == null)
+            {
+                String baseID = truncate(key, dba.getDatastoreIdentifierMaxLength(IdentifierType.COLUMN));
+                identifier = new ColumnIdentifier(this, baseID);
+                columns.put(key, identifier);
+            }
+            return identifier;
         }
-        return identifier;
     }
 
     /**
@@ -651,25 +670,30 @@ public abstract class AbstractIdentifierFactory implements IdentifierFactory
     {
         DatastoreIdentifier identifier = null;
         String key = "[" + (javaName == null ? "" : javaName) + "][" + embedded + "][" + fieldRole; // TODO Change this to a string form of fieldRole
-        identifier = columns.get(key);
-        if (identifier == null)
-        {
-            if (custom)
-            {
-                // If the user has provided a name (CUSTOM) so dont need to generate it and don't need a suffix
-                String baseID = truncate(javaName, dba.getDatastoreIdentifierMaxLength(IdentifierType.COLUMN));
-                identifier = new ColumnIdentifier(this, baseID);
+        synchronized (columns) {
+            identifier = columns.get(key);
+            if (identifier == null) {
+                if (custom)
+                {
+                    // If the user has provided a name (CUSTOM) so dont need to generate it and don't need a suffix
+                    String
+                        baseID =
+                        truncate(javaName, dba.getDatastoreIdentifierMaxLength(IdentifierType.COLUMN));
+                    identifier = new ColumnIdentifier(this, baseID);
+                } else
+                {
+                    String suffix = getColumnIdentifierSuffix(fieldRole, embedded);
+                    String datastoreID = generateIdentifierNameForJavaName(javaName);
+                    String
+                        baseID =
+                        truncate(datastoreID,
+                                 dba.getDatastoreIdentifierMaxLength(IdentifierType.COLUMN) - suffix.length());
+                    identifier = new ColumnIdentifier(this, baseID + suffix);
+                }
+                columns.put(key, identifier);
             }
-            else
-            {
-                String suffix = getColumnIdentifierSuffix(fieldRole, embedded);
-                String datastoreID = generateIdentifierNameForJavaName(javaName);
-                String baseID = truncate(datastoreID, dba.getDatastoreIdentifierMaxLength(IdentifierType.COLUMN) - suffix.length());
-                identifier = new ColumnIdentifier(this, baseID + suffix);
-            }
-            columns.put(key, identifier);
+            return identifier;
         }
-        return identifier;
     }
 
     /**
@@ -680,14 +704,16 @@ public abstract class AbstractIdentifierFactory implements IdentifierFactory
     public DatastoreIdentifier newSequenceIdentifier(String sequenceName)
     {
         String key = sequenceName;
-        DatastoreIdentifier identifier = sequences.get(key);
-        if (identifier == null)
-        {
-            String baseID = truncate(sequenceName, dba.getDatastoreIdentifierMaxLength(IdentifierType.SEQUENCE));
-            identifier = new ColumnIdentifier(this, baseID);
-            sequences.put(key, identifier);
+        synchronized (sequences) {
+            DatastoreIdentifier identifier = sequences.get(key);
+            if (identifier == null)
+            {
+                String baseID = truncate(sequenceName, dba.getDatastoreIdentifierMaxLength(IdentifierType.SEQUENCE));
+                identifier = new ColumnIdentifier(this, baseID);
+                sequences.put(key, identifier);
+            }
+            return identifier;
         }
-        return identifier;
     }
 
     /**
@@ -699,16 +725,18 @@ public abstract class AbstractIdentifierFactory implements IdentifierFactory
     {
         DatastoreIdentifier identifier = null;
         String key = table.getIdentifier().toString();
-        identifier = primarykeys.get(key);
-        if (identifier == null)
-        {
-            String suffix = getWordSeparator() + "PK";
-            int maxLength = dba.getDatastoreIdentifierMaxLength(IdentifierType.PRIMARY_KEY);
-            String baseID = truncate(table.getIdentifier().getName(), maxLength - suffix.length());
-            identifier = new PrimaryKeyIdentifier(this, baseID + suffix);
-            primarykeys.put(key, identifier);
+        synchronized (primarykeys) {
+            identifier = primarykeys.get(key);
+            if (identifier == null)
+            {
+                String suffix = getWordSeparator() + "PK";
+                int maxLength = dba.getDatastoreIdentifierMaxLength(IdentifierType.PRIMARY_KEY);
+                String baseID = truncate(table.getIdentifier().getName(), maxLength - suffix.length());
+                identifier = new PrimaryKeyIdentifier(this, baseID + suffix);
+                primarykeys.put(key, identifier);
+            }
+            return identifier;
         }
-        return identifier;
     }
 
     /**
@@ -721,16 +749,18 @@ public abstract class AbstractIdentifierFactory implements IdentifierFactory
     {
         DatastoreIdentifier identifier = null;
         String key = "[" + table.getIdentifier().toString() + "][" + seq + "]";
-        identifier = candidates.get(key);
-        if (identifier == null)
-        {
-            String suffix = getWordSeparator() + "U" + seq;
-            int maxLength = dba.getDatastoreIdentifierMaxLength(IdentifierType.CANDIDATE_KEY);
-            String baseID = truncate(table.getIdentifier().getName(), maxLength - suffix.length());
-            identifier = new CandidateKeyIdentifier(this, baseID + suffix);
-            candidates.put(key, identifier);
+        synchronized (candidates) {
+            identifier = candidates.get(key);
+            if (identifier == null)
+            {
+                String suffix = getWordSeparator() + "U" + seq;
+                int maxLength = dba.getDatastoreIdentifierMaxLength(IdentifierType.CANDIDATE_KEY);
+                String baseID = truncate(table.getIdentifier().getName(), maxLength - suffix.length());
+                identifier = new CandidateKeyIdentifier(this, baseID + suffix);
+                candidates.put(key, identifier);
+            }
+            return identifier;
         }
-        return identifier;
     }
 
     /**
@@ -743,28 +773,28 @@ public abstract class AbstractIdentifierFactory implements IdentifierFactory
     {
         DatastoreIdentifier identifier = null;
         String key = "[" + table.getIdentifier().toString() + "][" + seq + "]";
-        identifier = foreignkeys.get(key);
-        if (identifier == null)
-        {
-            String suffix = getWordSeparator() + "FK";
-            if (seq < 10)
+        synchronized (foreignkeys) {
+            identifier = foreignkeys.get(key);
+            if (identifier == null)
             {
-                suffix += "" + (char)('0' + seq);
+                String suffix = getWordSeparator() + "FK";
+                if (seq < 10)
+                {
+                    suffix += "" + (char) ('0' + seq);
+                } else if (seq < dba.getMaxForeignKeys())
+                {
+                    suffix += Integer.toHexString('A' + seq);
+                } else
+                {
+                    throw new TooManyForeignKeysException(dba, table.toString());
+                }
+                int maxLength = dba.getDatastoreIdentifierMaxLength(IdentifierType.FOREIGN_KEY);
+                String baseID = truncate(table.getIdentifier().getName(), maxLength - suffix.length());
+                identifier = new ForeignKeyIdentifier(this, baseID + suffix);
+                foreignkeys.put(key, identifier);
             }
-            else if (seq < dba.getMaxForeignKeys())
-            {
-                suffix += Integer.toHexString('A' + seq);
-            }
-            else
-            {
-                throw new TooManyForeignKeysException(dba, table.toString());
-            }
-            int maxLength = dba.getDatastoreIdentifierMaxLength(IdentifierType.FOREIGN_KEY);
-            String baseID = truncate(table.getIdentifier().getName(), maxLength - suffix.length());
-            identifier = new ForeignKeyIdentifier(this, baseID + suffix);
-            foreignkeys.put(key, identifier);
+            return identifier;
         }
-        return identifier;
     }
 
     /**
@@ -778,24 +808,25 @@ public abstract class AbstractIdentifierFactory implements IdentifierFactory
     {
         DatastoreIdentifier identifier = null;
         String key = "[" + table.getIdentifier().toString() + "][" + isUnique + "][" + seq + "]";
-        identifier = indexes.get(key);
-        if (identifier == null)
-        {
-            String suffix = getWordSeparator() + (isUnique ? "U" : "N");
-            if (seq < dba.getMaxIndexes())
+        synchronized (indexes) {
+            identifier = indexes.get(key);
+            if (identifier == null)
             {
-                suffix += String.valueOf('0' + seq);
+                String suffix = getWordSeparator() + (isUnique ? "U" : "N");
+                if (seq < dba.getMaxIndexes())
+                {
+                    suffix += String.valueOf('0' + seq);
+                } else
+                {
+                    throw new TooManyIndicesException(dba, table.toString());
+                }
+                int maxLength = dba.getDatastoreIdentifierMaxLength(IdentifierType.INDEX);
+                String baseID = truncate(table.getIdentifier().getName(), maxLength - suffix.length());
+                identifier = new IndexIdentifier(this, baseID + suffix);
+                indexes.put(key, identifier);
             }
-            else
-            {
-                throw new TooManyIndicesException(dba, table.toString());
-            }
-            int maxLength = dba.getDatastoreIdentifierMaxLength(IdentifierType.INDEX);
-            String baseID = truncate(table.getIdentifier().getName(), maxLength - suffix.length());
-            identifier = new IndexIdentifier(this, baseID + suffix);
-            indexes.put(key, identifier);
+            return identifier;
         }
-        return identifier;
     }
 
     /**
